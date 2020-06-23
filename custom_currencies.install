@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the custom_currencies module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function custom_currencies_schema() {
+  $schema['custom_currencies'] = array(
+    'description' => 'Custom currencies',
+    'fields' => array(
+      'cid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique currency ID.',
+      ),
+      'code' => array(
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Currency code.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Currency name.',
+      ),
+    ),
+    'primary key' => array('cid'),
+    'unique keys' => array(
+      'code' => array('code'),
+    ),
+  );
+  $schema['custom_currencies_rates'] = array(
+    'description' => 'Custom currencies rates',
+    'fields' => array(
+      'rid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique currency rate ID.',
+      ),
+      'cid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {custom_currencies}.cid of the rate.',
+      ),
+      'date' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The Unix timestamp for rate value.',
+      ),
+      'rate' => array(
+        'type' => 'float',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The rate value.',
+      ),
+    ),
+    'primary key' => array('rid'),
+    'unique keys' => array(
+      'cid_date' => array('cid', 'date'),
+    ),
+  );
+  return $schema;
+}

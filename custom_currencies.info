@@ -1,0 +1,9 @@
+name = Custom Currencies
+package = Custom
+core = 7.x
+version = 7.x-dev
+dependencies[] = entity
+dependencies[] = views_data_export_json
+dependencies[] = google_chart_tools_views
+files[] = views/handlers/views_handler_filter_custom_currency_name.inc
+configure = admin/config/services/custom_currencies

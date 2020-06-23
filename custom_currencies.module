@@ -1,0 +1,168 @@
+<?php
+
+
+/**
+ * Implements hook_menu().
+ */
+function custom_currencies_menu() {
+  $items['admin/config/services/custom_currencies'] = array(
+    'title' => 'Fetch custom currencies rates',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('custom_currencies_batch_form'),
+    'access arguments' => array('fetch custom currencies rates'),
+    'file' => 'custom_currencies.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function custom_currencies_permission() {
+  return array(
+    'fetch custom currencies rates' => array(
+      'title' => t('Fetch custom currencies rates'),
+      'description' => t('Allow to manually fetch the custom currencies rates'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function custom_currencies_entity_info() {
+  $info = array(
+    'custom_currencies' => array(
+      'label' => t('Custom currency'),
+      'plural label' => t('Custom currency'),
+      'description' => t('List of custom currencies'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'custom_currencies',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'cid',
+        'label' => 'name',
+      ),
+      'bundles' => array(
+        'currency' => array(
+          'label' => t('Custom currency'),
+        ),
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'access callback' => 'custom_currencies_access_callback',
+      'module' => 'custom_currencies',
+    ),
+    'custom_currencies_rates' => array(
+      'label' => t('Custom currency rate'),
+      'plural label' => t('Custom currency rate'),
+      'description' => t('Rates of custom currencies'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'custom_currencies_rates',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'rid',
+      ),
+      'bundles' => array(
+        'rate' => array(
+          'label' => t('Custom currency rate'),
+        ),
+      ),
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'access callback' => 'custom_currencies_access_callback',
+      'module' => 'custom_currencies',
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_entity_property_info().
+ */
+function custom_currencies_entity_property_info() {
+  $info = array(
+    'custom_currencies' => array(
+      'properties' => array(
+        'cid' => array(
+          'label' => t('ID'),
+          'description' => t('Custom currency ID'),
+          'type' => 'integer',
+          'schema field' => 'cid',
+        ),
+        'code' => array(
+          'label' => t('Code'),
+          'description' => t('Custom currency code'),
+          'type' => 'text',
+          'schema field' => 'code',
+        ),
+        'name' => array(
+          'label' => t('Name'),
+          'description' => t('Custom currency name'),
+          'type' => 'text',
+          'schema field' => 'name',
+        ),
+      ),
+    ),
+    'custom_currencies_rates' => array(
+      'properties' => array(
+        'rid' => array(
+          'label' => t('ID'),
+          'description' => t('Custom currency rate ID'),
+          'type' => 'integer',
+          'schema field' => 'rid',
+        ),
+        'cid' => array(
+          'label' => t('Currency ID'),
+          'description' => t('Custom currency ID'),
+          'type' => 'integer',
+          'schema field' => 'cid',
+        ),
+        'date' => array(
+          'label' => t('Date'),
+          'description' => t('The date of the rate.'),
+          'type' => 'date',
+          'schema field' => 'date',
+        ),
+        'rate' => array(
+          'label' => t('Rate'),
+          'description' => t('The rate value.'),
+          'type' => 'decimal',
+          'schema field' => 'rate',
+        ),
+      ),
+    ),
+  );
+  return $info;
+}
+
+function custom_currencies_access_callback($op, $entity, $account = NULL, $entity_type = 'custom_currencies') {
+  return user_access('access content');
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function custom_currencies_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'custom_currencies') . '/views',
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function custom_currencies_cron() {
+  module_load_include('inc', 'custom_currencies', 'custom_currencies');
+  $currencies = custom_currencies_fetch_currencies();
+  $rates = custom_currencies_fetch_currencies_rates();
+  watchdog(
+    'custom_currencies',
+    t('At the cron run @currencies currencies and @rates rates were fetched'),
+    array('@currencies' => $currencies, '@rates' => $rates),
+    WATCHDOG_INFO
+  );
+}
